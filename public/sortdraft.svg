@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Sortdraft">
+  <rect width="64" height="64" rx="14" fill="#8b4513"/>
+
+  <g transform="translate(7 32) rotate(-18 9 12)">
+    <rect width="19" height="24" rx="2" fill="#e8dfd0" stroke="#d4c9b8"/>
+    <line x1="3" y1="6" x2="16" y2="6" stroke="#c4a574" stroke-width="0.8" stroke-linecap="round" opacity="0.55"/>
+    <line x1="3" y1="9" x2="14" y2="9" stroke="#c4a574" stroke-width="0.8" stroke-linecap="round" opacity="0.55"/>
+  </g>
+
+  <g transform="translate(35 7) rotate(14 9 12)">
+    <rect width="19" height="24" rx="2" fill="#fffef9" stroke="#d4c9b8"/>
+    <line x1="3" y1="6" x2="16" y2="6" stroke="#c4a574" stroke-width="0.8" stroke-linecap="round"/>
+    <line x1="3" y1="9" x2="15" y2="9" stroke="#c4a574" stroke-width="0.8" stroke-linecap="round"/>
+    <line x1="3" y1="12" x2="13" y2="12" stroke="#c4a574" stroke-width="0.8" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(39 35) rotate(-8 9 12)">
+    <rect width="19" height="24" rx="2" fill="#f5f0e8" stroke="#d4c9b8"/>
+    <line x1="3" y1="6" x2="16" y2="6" stroke="#c4a574" stroke-width="0.8" stroke-linecap="round" opacity="0.7"/>
+    <line x1="3" y1="9" x2="13" y2="9" stroke="#c4a574" stroke-width="0.8" stroke-linecap="round" opacity="0.7"/>
+  </g>
+
+  <path
+    d="M 19 44 C 27 33, 35 27, 48 19"
+    fill="none"
+    stroke="#fffef9"
+    stroke-width="3.2"
+    stroke-linecap="round"
+  />
+  <path d="M 48 19 L 44 17 L 46 22 Z" fill="#fffef9"/>
+  <circle cx="19" cy="44" r="2.2" fill="#fffef9"/>
+</svg>
