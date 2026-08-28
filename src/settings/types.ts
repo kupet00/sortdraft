@@ -22,6 +22,7 @@ export interface ThemeColors {
 export interface AppSettings {
   uiFontSize: number;
   editorFontSize: number;
+  editorFontFamily: string;
   pageWidth: number;
   typewriterMode: boolean;
   themeMode: ThemeMode;

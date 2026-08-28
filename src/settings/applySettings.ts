@@ -1,3 +1,4 @@
+import { resolveEditorFontStack } from "./fonts";
 import type { AppSettings, ThemeColors } from "./types";
 import { resolveColors } from "./themes";
 
@@ -85,5 +86,9 @@ export function applySettings(settings: AppSettings): void {
   applyColorVars(root, colors);
   root.style.setProperty("--font-size-ui", `${settings.uiFontSize}px`);
   root.style.setProperty("--font-size-editor", `${settings.editorFontSize}px`);
+  root.style.setProperty(
+    "--font-family-editor",
+    resolveEditorFontStack(settings.editorFontFamily),
+  );
   root.style.colorScheme = settings.themeMode === "dark" ? "dark" : "light";
 }

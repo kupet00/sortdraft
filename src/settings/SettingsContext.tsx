@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { applySettings } from "./applySettings";
+import { isEditorFontId } from "./fonts";
 import { loadSettings, saveSettings } from "./storage";
 import { defaultSettings, themePresets } from "./themes";
 import type { AppSettings, ThemeColors, ThemeMode } from "./types";
@@ -18,6 +19,7 @@ interface SettingsContextValue {
   activeColors: ThemeColors;
   setUiFontSize: (size: number) => void;
   setEditorFontSize: (size: number) => void;
+  setEditorFontFamily: (family: string) => void;
   setPageWidth: (width: number) => void;
   setTypewriterMode: (enabled: boolean) => void;
   setThemeMode: (mode: ThemeMode) => void;
@@ -48,6 +50,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const setEditorFontSize = useCallback(
     (size: number) =>
       update({ editorFontSize: Math.min(32, Math.max(12, size)) }),
+    [update],
+  );
+
+  const setEditorFontFamily = useCallback(
+    (family: string) => {
+      if (!isEditorFontId(family)) return;
+      update({ editorFontFamily: family });
+    },
     [update],
   );
 
@@ -109,6 +119,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       activeColors,
       setUiFontSize,
       setEditorFontSize,
+      setEditorFontFamily,
       setPageWidth,
       setTypewriterMode,
       setThemeMode,
@@ -121,6 +132,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       activeColors,
       setUiFontSize,
       setEditorFontSize,
+      setEditorFontFamily,
       setPageWidth,
       setTypewriterMode,
       setThemeMode,

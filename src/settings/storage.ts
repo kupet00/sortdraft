@@ -1,3 +1,4 @@
+import { DEFAULT_EDITOR_FONT_FAMILY, isEditorFontId } from "./fonts";
 import type { AppSettings } from "./types";
 import { defaultSettings } from "./themes";
 
@@ -15,6 +16,9 @@ export function loadSettings(): AppSettings {
     return {
       ...defaultSettings(),
       ...parsed,
+      editorFontFamily: isEditorFontId(parsed.editorFontFamily ?? "")
+        ? parsed.editorFontFamily!
+        : DEFAULT_EDITOR_FONT_FAMILY,
       customColors: {
         ...defaultSettings().customColors,
         ...parsed.customColors,

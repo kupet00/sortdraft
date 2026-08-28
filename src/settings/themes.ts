@@ -1,3 +1,4 @@
+import { DEFAULT_EDITOR_FONT_FAMILY } from "./fonts";
 import type { AppSettings, ThemeColors } from "./types";
 import {
   DEFAULT_EDITOR_FONT_SIZE,
@@ -52,6 +53,7 @@ export function defaultSettings(): AppSettings {
   return {
     uiFontSize: DEFAULT_UI_FONT_SIZE,
     editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
+    editorFontFamily: DEFAULT_EDITOR_FONT_FAMILY,
     pageWidth: DEFAULT_PAGE_WIDTH,
     typewriterMode: false,
     themeMode: "light",

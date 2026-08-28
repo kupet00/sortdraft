@@ -1,4 +1,9 @@
+import { useMemo } from "react";
 import { COLOR_LABELS, type ThemeColors } from "../settings/types";
+import {
+  availableEditorFonts,
+  resolveEditorFontStack,
+} from "../settings/fonts";
 import { useSettings } from "../settings/SettingsContext";
 
 interface OptionsDialogProps {
@@ -10,11 +15,18 @@ export function OptionsDialog({ onClose }: OptionsDialogProps) {
     settings,
     setUiFontSize,
     setEditorFontSize,
+    setEditorFontFamily,
     setTypewriterMode,
     setThemeMode,
     setCustomColor,
     resetToDefaults,
   } = useSettings();
+
+  const editorFonts = useMemo(
+    () => availableEditorFonts(settings.editorFontFamily),
+    [settings.editorFontFamily],
+  );
+  const editorFontStack = resolveEditorFontStack(settings.editorFontFamily);
 
   return (
     <div className="dialog-backdrop" onClick={onClose}>
@@ -27,7 +39,28 @@ export function OptionsDialog({ onClose }: OptionsDialogProps) {
         </div>
 
         <section className="options-section">
-          <h4>Font sizes</h4>
+          <h4>Fonts</h4>
+          <label className="options-select">
+            <span>Editor font</span>
+            <select
+              value={settings.editorFontFamily}
+              onChange={(e) => setEditorFontFamily(e.target.value)}
+              style={{ fontFamily: editorFontStack }}
+            >
+              {editorFonts.map((font) => (
+                <option
+                  key={font.id}
+                  value={font.id}
+                  style={{ fontFamily: font.stack }}
+                >
+                  {font.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="options-font-preview" style={{ fontFamily: editorFontStack }}>
+            The writer sat at the desk and began a new scene.
+          </p>
           <label className="options-range">
             <span>UI font size</span>
             <div className="options-range-controls">

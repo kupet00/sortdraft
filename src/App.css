@@ -54,6 +54,7 @@
   --radius: 6px;
   --font-size-ui: 15px;
   --font-size-editor: 17px;
+  --font-family-editor: "Georgia", "Times New Roman", serif;
   font-family: "Georgia", "Times New Roman", serif;
   font-size: var(--font-size-ui);
   line-height: 1.5;
@@ -78,6 +79,7 @@ button {
 }
 
 input,
+select,
 textarea {
   font-family: inherit;
   font-size: inherit;
@@ -1052,7 +1054,7 @@ textarea {
   padding: 1.5rem;
   font-size: var(--font-size-editor);
   line-height: 1.8;
-  font-family: inherit;
+  font-family: var(--font-family-editor);
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -1301,6 +1303,7 @@ textarea {
   border: none;
   outline: none;
   resize: none;
+  font-family: var(--font-family-editor);
   font-size: var(--font-size-editor);
   line-height: 1.7;
   color: var(--text);
@@ -1344,6 +1347,37 @@ textarea {
   letter-spacing: 0.05em;
   color: var(--text-muted);
   margin-bottom: 0.75rem;
+}
+
+.options-select {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.options-select > span {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+.options-select select {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-editor);
+  color: var(--text);
+}
+
+.options-font-preview {
+  margin-bottom: 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-editor);
+  font-size: var(--font-size-editor);
+  line-height: 1.6;
+  color: var(--text);
 }
 
 .options-range {
