@@ -60,7 +60,7 @@ Use `npm run android:dev` with an emulator or USB-connected device for live relo
 
 Pushing a tag like `v0.1.0` runs **Build and publish**: it produces the artifacts below, creates a GitHub Release, and pushes to itch.io.
 
-The **Build** workflow is manual only (**Run workflow**). It produces the same artifacts and can create a GitHub Release if you pass a tag, but it never publishes to itch.io.
+The **Build without itch.io** workflow is manual (**Actions → Build without itch.io → Run workflow**). It produces the same artifacts and can create a GitHub Release if you pass a tag, but it never publishes to itch.io. GitHub only shows that Run button after the workflow file is on `main`.
 
 | Platform | Artifacts |
 |----------|-----------|
