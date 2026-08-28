@@ -58,7 +58,9 @@ Use `npm run android:dev` with an emulator or USB-connected device for live relo
 
 ### CI builds (GitHub Actions)
 
-Pushing a tag like `v0.1.0` or running the **Build** workflow manually produces:
+Pushing a tag like `v0.1.0` runs **Build and publish**: it produces the artifacts below, creates a GitHub Release, and pushes to itch.io.
+
+The **Build** workflow is manual only (**Run workflow**). It produces the same artifacts and can create a GitHub Release if you pass a tag, but it never publishes to itch.io.
 
 | Platform | Artifacts |
 |----------|-----------|
@@ -70,7 +72,7 @@ Pushing a tag like `v0.1.0` or running the **Build** workflow manually produces:
 
 Linux builds run on Ubuntu 22.04 (`ubuntu-22.04` and `ubuntu-22.04-arm`) for broad Debian/Ubuntu compatibility, including 64-bit Raspberry Pi OS. The zip contains the extracted `usr/` tree from the `.deb` for portable use; install the `.deb` for system integration. The ARM64 build is for 64-bit OS on Raspberry Pi 4/5 (and other aarch64 Linux), not 32-bit Raspberry Pi OS. The Android APK is for 64-bit ARM phones and tablets.
 
-Workflow file: [`.github/workflows/build.yml`](.github/workflows/build.yml)
+Workflow files: [`.github/workflows/build.yml`](.github/workflows/build.yml) (tag + itch.io) and [`.github/workflows/build-manual.yml`](.github/workflows/build-manual.yml) (manual, no itch.io).
 
 Tagged releases are also pushed to [itch.io](https://itch.io/) with [butler](https://github.com/itchio/butler).
 

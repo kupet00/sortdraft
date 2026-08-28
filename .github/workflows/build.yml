@@ -1,7 +1,6 @@
-name: Build
+name: Build and publish
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - "v*"
@@ -10,117 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  macos:
-    uses: ./.github/workflows/build-target.yml
-    with:
-      slug: macos-aarch64
-      os: macos-latest
-      rust_target: aarch64-apple-darwin
-      tauri_args: --target aarch64-apple-darwin --bundles dmg
-      platform: macos
-
-  windows:
-    uses: ./.github/workflows/build-target.yml
-    with:
-      slug: windows-x86_64
-      os: windows-latest
-      tauri_args: --bundles nsis
-      platform: windows
-
-  linux:
-    uses: ./.github/workflows/build-target.yml
-    with:
-      slug: linux-x86_64
-      os: ubuntu-22.04
-      tauri_args: --bundles deb
-      platform: linux
-      linux_arch: x86_64
-
-  linux-aarch64:
-    uses: ./.github/workflows/build-target.yml
-    with:
-      slug: linux-aarch64
-      os: ubuntu-22.04-arm
-      tauri_args: --bundles deb
-      platform: linux
-      linux_arch: aarch64
-
-  android:
-    uses: ./.github/workflows/build-android.yml
-    secrets: inherit
-
   release:
-    name: Publish GitHub Release
-    needs: [macos, windows, linux, linux-aarch64, android]
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release-artifacts
-          merge-multiple: true
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: release-artifacts/**/*
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  itch:
-    name: Publish to itch.io
-    needs: [macos, windows, linux, linux-aarch64, android]
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Install butler
-        run: |
-          set -euo pipefail
-          # Official butler CLI: https://github.com/itchio/butler
-          # Stable CI download via broth (permanent URL): https://itch.io/docs/butler/installing.html
-          curl -fsSL -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive.zip
-          mkdir -p "$HOME/butler"
-          unzip -o butler.zip -d "$HOME/butler"
-          chmod +x "$HOME/butler/butler"
-          echo "$HOME/butler" >> "$GITHUB_PATH"
-
-      - name: Push to itch.io
-        env:
-          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-          ITCH_PROJECT: ${{ vars.ITCH_PROJECT || format('{0}/sortdraft', github.repository_owner) }}
-        run: |
-          set -euo pipefail
-          if [ -z "${BUTLER_API_KEY}" ]; then
-            echo "::error::Add repository secret BUTLER_API_KEY from https://itch.io/user/settings/api-keys (source: wharf)."
-            exit 1
-          fi
-
-          butler version
-          VERSION="${GITHUB_REF_NAME#v}"
-          echo "Pushing ${VERSION} to ${ITCH_PROJECT}"
-
-          push_channel() {
-            local glob="$1"
-            local channel="$2"
-            local files=( $glob )
-            if [ ${#files[@]} -eq 0 ] || [ ! -e "${files[0]}" ]; then
-              echo "::error::No artifact matching ${glob}"
-              exit 1
-            fi
-            echo "Pushing ${files[0]} → ${ITCH_PROJECT}:${channel}"
-            butler push "${files[0]}" "${ITCH_PROJECT}:${channel}" --userversion "$VERSION"
-          }
-
-          shopt -s nullglob
-          push_channel "artifacts/sortdraft-macos-aarch64/*.dmg" "osx-arm64"
-          push_channel "artifacts/sortdraft-windows-x86_64/*.exe" "windows"
-          push_channel "artifacts/sortdraft-linux-x86_64/*.zip" "linux"
-          push_channel "artifacts/sortdraft-linux-aarch64/*.zip" "linux-arm64"
-          push_channel "artifacts/sortdraft-android-aarch64/*.apk" "android"
+    uses: ./.github/workflows/build-release.yml
+    with:
+      publish_itch: true
+    secrets: inherit
