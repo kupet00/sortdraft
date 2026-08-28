@@ -379,15 +379,12 @@ fn set_book_chapter_order(
 
 pub fn create_project(req: CreateProjectRequest) -> Result<Project, String> {
     let path = PathBuf::from(&req.path);
-    if path.join("project.json").exists() {
-        return Err("A Sortdraft project already exists in this folder.".into());
-    }
     if path.exists() {
         let entries: Vec<_> = fs::read_dir(&path)
             .map_err(|e| e.to_string())?
             .filter_map(|e| e.ok())
             .collect();
-        if !entries.is_empty() {
+        if !entries.is_empty() && !path.join("project.json").exists() {
             return Err("Directory is not empty".into());
         }
     }

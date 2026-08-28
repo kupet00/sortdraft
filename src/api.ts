@@ -2,11 +2,9 @@ import { invoke } from "@tauri-apps/api/core";
 import type {
   ChapterDetail,
   CreateNoteResult,
-  LocalProject,
   MoveChapterResult,
   NoteSummary,
   Project,
-  RuntimeInfo,
   ScenePosition,
   TagDefinition,
 } from "./types";
@@ -344,12 +342,4 @@ export async function deleteNote(
   return invoke("delete_note_cmd", {
     req: { project_path: projectPath, note_id: noteId },
   });
-}
-
-export async function getRuntimeInfo(): Promise<RuntimeInfo> {
-  return invoke("runtime_info_cmd");
-}
-
-export async function listLocalProjects(): Promise<LocalProject[]> {
-  return invoke("list_local_projects_cmd");
 }

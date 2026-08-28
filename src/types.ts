@@ -70,13 +70,3 @@ export interface CreateNoteResult {
   notes: NoteSummary[];
   created_id: string;
 }
-
-export interface RuntimeInfo {
-  mobile: boolean;
-  projectsRoot: string;
-}
-
-export interface LocalProject {
-  path: string;
-  name: string;
-}

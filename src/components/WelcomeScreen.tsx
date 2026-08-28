@@ -1,25 +1,17 @@
-import type { LocalProject } from "../types";
-
 interface WelcomeScreenProps {
   onOpen: () => void;
   onCreate: () => void;
-  onOpenLocal: (path: string) => void;
   onOpenOptions: () => void;
   loading: boolean;
   error: string | null;
-  mobile: boolean;
-  localProjects: LocalProject[];
 }
 
 export function WelcomeScreen({
   onOpen,
   onCreate,
-  onOpenLocal,
   onOpenOptions,
   loading,
   error,
-  mobile,
-  localProjects,
 }: WelcomeScreenProps) {
   return (
     <div className="welcome">
@@ -40,36 +32,10 @@ export function WelcomeScreen({
         >
           {loading ? "Working…" : "New Project"}
         </button>
-        {!mobile && (
-          <button className="btn" onClick={onOpen} disabled={loading}>
-            Open Project
-          </button>
-        )}
+        <button className="btn" onClick={onOpen} disabled={loading}>
+          Open Project
+        </button>
       </div>
-      {mobile && (
-        <div className="welcome-projects">
-          <h2>On this device</h2>
-          {localProjects.length === 0 ? (
-            <p className="welcome-projects-empty">
-              Projects you create are stored on this device.
-            </p>
-          ) : (
-            <ul className="welcome-project-list">
-              {localProjects.map((project) => (
-                <li key={project.path}>
-                  <button
-                    className="welcome-project-btn"
-                    onClick={() => onOpenLocal(project.path)}
-                    disabled={loading}
-                  >
-                    {project.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
     </div>
   );
 }

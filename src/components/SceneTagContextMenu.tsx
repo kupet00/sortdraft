@@ -24,7 +24,7 @@ export function SceneTagContextMenu({
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handlePointerDown = (e: PointerEvent) => {
+    const handlePointerDown = (e: MouseEvent) => {
       if (menuRef.current?.contains(e.target as Node)) return;
       onClose();
     };
@@ -33,12 +33,12 @@ export function SceneTagContextMenu({
     };
     const handleScroll = () => onClose();
 
-    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("mousedown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("scroll", handleScroll, true);
 
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScroll, true);
     };

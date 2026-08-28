@@ -47,13 +47,9 @@ jobs:
       platform: linux
       linux_arch: aarch64
 
-  android:
-    uses: ./.github/workflows/build-android.yml
-    secrets: inherit
-
   release:
     name: Publish GitHub Release
-    needs: [macos, windows, linux, linux-aarch64, android]
+    needs: [macos, windows, linux, linux-aarch64]
     if: ${{ inputs.github_release_tag != '' }}
     runs-on: ubuntu-latest
     steps:
