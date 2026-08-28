@@ -34,10 +34,20 @@ jobs:
       os: ubuntu-22.04
       tauri_args: --bundles deb
       platform: linux
+      linux_arch: x86_64
+
+  linux-aarch64:
+    uses: ./.github/workflows/build-target.yml
+    with:
+      slug: linux-aarch64
+      os: ubuntu-22.04-arm
+      tauri_args: --bundles deb
+      platform: linux
+      linux_arch: aarch64
 
   release:
     name: Publish GitHub Release
-    needs: [macos, windows, linux]
+    needs: [macos, windows, linux, linux-aarch64]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:

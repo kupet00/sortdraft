@@ -20,6 +20,11 @@ on:
         required: true
         type: string
         description: macos, windows, or linux
+      linux_arch:
+        required: false
+        type: string
+        default: x86_64
+        description: Architecture label for Linux artifacts (x86_64 or aarch64)
 
 jobs:
   build:
@@ -61,16 +66,21 @@ jobs:
         run: |
           set -euo pipefail
           VERSION=$(jq -r .version src-tauri/tauri.conf.json)
+          ARCH="${{ inputs.linux_arch }}"
           DEB=$(ls src-tauri/target/release/bundle/deb/*.deb | head -1)
-          STAGING="sortdraft_${VERSION}_linux_x86_64"
+          STAGING="sortdraft_${VERSION}_linux_${ARCH}"
           mkdir -p "$STAGING"
           dpkg-deb -x "$DEB" "$STAGING"
           BIN=$(find "$STAGING/usr/bin" -maxdepth 1 -type f | head -1)
           BIN_NAME=$(basename "$BIN")
           {
-            echo "Sortdraft ${VERSION} — portable Linux build"
+            echo "Sortdraft ${VERSION} — portable Linux ${ARCH} build"
             echo
             echo "Requires WebKitGTK 4.1 and GTK 3 (same libraries as the .deb package)."
+            if [ "$ARCH" = "aarch64" ]; then
+              echo "This build targets 64-bit ARM (aarch64), including Raspberry Pi 4/5"
+              echo "running 64-bit Raspberry Pi OS or Debian/Ubuntu ARM64."
+            fi
             echo
             echo "Run the app from this folder:"
             echo "  ./usr/bin/${BIN_NAME}"
