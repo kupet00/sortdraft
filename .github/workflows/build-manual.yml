@@ -1,0 +1,20 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      github_release_tag:
+        description: Optional GitHub Release tag (e.g. v0.4.1). Leave empty for workflow artifacts only — never publishes to itch.io.
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-release.yml
+    with:
+      publish_itch: false
+      github_release_tag: ${{ inputs.github_release_tag }}
+    secrets: inherit
