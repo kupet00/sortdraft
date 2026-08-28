@@ -1,5 +1,5 @@
 name: Setup build environment
-description: Checkout, install Node/Rust, and npm dependencies
+description: Install Node/Rust toolchain and npm dependencies
 
 inputs:
   rust_target:
@@ -10,9 +10,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
