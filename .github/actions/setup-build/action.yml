@@ -1,0 +1,34 @@
+name: Setup build environment
+description: Checkout, install Node/Rust, and npm dependencies
+
+inputs:
+  rust_target:
+    description: Optional Rust target triple
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+
+    - name: Install Rust stable
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ inputs.rust_target }}
+
+    - name: Rust cache
+      uses: swatinem/rust-cache@v2
+      with:
+        workspaces: src-tauri -> target
+
+    - name: Install frontend dependencies
+      run: npm ci
+      shell: bash
