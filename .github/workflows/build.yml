@@ -45,9 +45,13 @@ jobs:
       platform: linux
       linux_arch: aarch64
 
+  android:
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+
   release:
     name: Publish GitHub Release
-    needs: [macos, windows, linux, linux-aarch64]
+    needs: [macos, windows, linux, linux-aarch64, android]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -67,7 +71,7 @@ jobs:
 
   itch:
     name: Publish to itch.io
-    needs: [macos, windows, linux, linux-aarch64]
+    needs: [macos, windows, linux, linux-aarch64, android]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -119,3 +123,4 @@ jobs:
           push_channel "artifacts/sortdraft-windows-x86_64/*.exe" "windows"
           push_channel "artifacts/sortdraft-linux-x86_64/*.zip" "linux"
           push_channel "artifacts/sortdraft-linux-aarch64/*.zip" "linux-arm64"
+          push_channel "artifacts/sortdraft-android-aarch64/*.apk" "android"

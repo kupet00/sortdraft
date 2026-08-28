@@ -19,9 +19,11 @@ interface SidebarProps {
   onSelectChapter: (bookId: string, chapterId: string) => void;
   onProjectUpdated: (project: Project) => void;
   onOpenOptions: () => void;
+  onCloseProject: () => void;
   requestPrompt: (request: PromptRequest) => Promise<string | null>;
   activeDragChapterId: string | null;
   isDraggingScene: boolean;
+  isMobile: boolean;
 }
 
 function errorMessage(error: unknown): string {
@@ -36,14 +38,17 @@ export function Sidebar({
   onSelectChapter,
   onProjectUpdated,
   onOpenOptions,
+  onCloseProject,
   requestPrompt,
   activeDragChapterId,
   isDraggingScene,
+  isMobile,
 }: SidebarProps) {
   const [expandedBooks, setExpandedBooks] = useState<Set<string>>(
     () => new Set(project.books.map((b) => b.id)),
   );
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const chapterDropEnabled = activeDragChapterId !== null;
 
   useLayoutEffect(() => {
@@ -65,6 +70,7 @@ export function Sidebar({
     action: (title: string) => Promise<Project>,
   ) => {
     setError(null);
+    setStatus(null);
     const title = await requestPrompt({
       title: `New ${label}`,
       label: `${label} name`,
@@ -82,13 +88,23 @@ export function Sidebar({
 
   const handleExportBook = async (bookId: string, bookTitle: string) => {
     setError(null);
+    setStatus(null);
     try {
-      const outputPath = await save({
-        defaultPath: `${bookTitle}.txt`,
-        filters: [{ name: "Text", extensions: ["txt"] }],
-      });
+      let outputPath: string | null;
+      if (isMobile) {
+        const safeTitle = bookTitle.trim().replace(/[/\\?%*:|"<>]/g, "-") || "export";
+        outputPath = `${project.path}/${safeTitle}.txt`;
+      } else {
+        outputPath = await save({
+          defaultPath: `${bookTitle}.txt`,
+          filters: [{ name: "Text", extensions: ["txt"] }],
+        });
+      }
       if (!outputPath) return;
-      await api.exportBook(project.path, bookId, outputPath);
+      const saved = await api.exportBook(project.path, bookId, outputPath);
+      if (isMobile) {
+        setStatus(`Exported to ${saved}`);
+      }
     } catch (err) {
       setError(errorMessage(err));
     }
@@ -99,9 +115,14 @@ export function Sidebar({
       <div className="sidebar-header">
         <div className="sidebar-header-row">
           <h1>{project.name}</h1>
-          <button className="btn btn-sm sidebar-options-btn" onClick={onOpenOptions}>
-            Options
-          </button>
+          <div className="sidebar-header-actions">
+            <button className="btn btn-sm sidebar-options-btn" onClick={onOpenOptions}>
+              Options
+            </button>
+            <button className="btn btn-sm sidebar-options-btn" onClick={onCloseProject}>
+              Close
+            </button>
+          </div>
         </div>
         <p className="sidebar-hint">
           Drag scenes onto any chapter. Drag chapters to reorder or move between books.
@@ -109,6 +130,7 @@ export function Sidebar({
       </div>
 
       {error && <div className="sidebar-error">{error}</div>}
+      {status && <div className="sidebar-status">{status}</div>}
 
       <div className="sidebar-actions">
         <button

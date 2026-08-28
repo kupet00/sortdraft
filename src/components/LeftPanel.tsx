@@ -20,7 +20,9 @@ interface LeftPanelProps {
   onSelectNote: (note: NoteSummary | null) => void;
   onProjectUpdated: (project: Project) => void;
   onOpenOptions: () => void;
+  onCloseProject: () => void;
   requestPrompt: (request: PromptRequest) => Promise<string | null>;
+  isMobile: boolean;
 }
 
 export function LeftPanel({
@@ -34,7 +36,9 @@ export function LeftPanel({
   onSelectNote,
   onProjectUpdated,
   onOpenOptions,
+  onCloseProject,
   requestPrompt,
+  isMobile,
 }: LeftPanelProps) {
   return (
     <div className="left-column">
@@ -48,6 +52,8 @@ export function LeftPanel({
           isDraggingScene={isDraggingScene}
           onProjectUpdated={onProjectUpdated}
           onOpenOptions={onOpenOptions}
+          onCloseProject={onCloseProject}
+          isMobile={isMobile}
         />
       </div>
       <NotesPanel

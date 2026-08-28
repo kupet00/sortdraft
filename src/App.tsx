@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -14,8 +14,10 @@ import type {
   ActiveChapter,
   ActiveScene,
   ChapterDetail,
+  LocalProject,
   NoteSummary,
   Project,
+  RuntimeInfo,
   SceneSummary,
   TagDefinition,
 } from "./types";
@@ -86,6 +88,23 @@ function chapterDropTarget(
   return null;
 }
 
+function useIsNarrow() {
+  const [narrow, setNarrow] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 800px)").matches,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 800px)");
+    const onChange = () => setNarrow(media.matches);
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
+
+  return narrow;
+}
+
 function App() {
   const [project, setProject] = useState<Project | null>(null);
   const [tags, setTags] = useState<TagDefinition[]>([]);
@@ -114,6 +133,11 @@ function App() {
   const [promptRequest, setPromptRequest] = useState<PromptRequest | null>(
     null,
   );
+  const [runtime, setRuntime] = useState<RuntimeInfo | null>(null);
+  const [localProjects, setLocalProjects] = useState<LocalProject[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isNarrow = useIsNarrow();
+  const isMobile = runtime?.mobile ?? false;
   const promptResolveRef = useRef<((value: string | null) => void) | null>(
     null,
   );
@@ -137,6 +161,22 @@ function App() {
     setPromptRequest(null);
   };
 
+  useEffect(() => {
+    if (!isTauri()) return;
+    void api
+      .getRuntimeInfo()
+      .then(setRuntime)
+      .catch((error) => setWelcomeError(errorMessage(error)));
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile || project) return;
+    void api
+      .listLocalProjects()
+      .then(setLocalProjects)
+      .catch((error) => setWelcomeError(errorMessage(error)));
+  }, [isMobile, project]);
+
   const loadTags = useCallback(async (projectPath: string) => {
     const loaded = await api.listTags(projectPath);
     setTags(loaded);
@@ -150,6 +190,7 @@ function App() {
       setActiveChapter({ bookId, chapterId });
       setActiveScene(null);
       setActiveNote(null);
+      setSidebarOpen(false);
     },
     [project],
   );
@@ -160,6 +201,7 @@ function App() {
       setActiveChapter(null);
       setChapterDetail(null);
       setActiveScene(null);
+      setSidebarOpen(false);
     }
   }, []);
 
@@ -185,6 +227,11 @@ function App() {
     }
 
     try {
+      if (isMobile && runtime) {
+        setCreateParentPath(runtime.projectsRoot);
+        return;
+      }
+
       const parent = await open({
         directory: true,
         multiple: false,
@@ -214,6 +261,7 @@ function App() {
       const created = await api.createProject(path, name.trim());
       setProject(created);
       await loadTags(created.path);
+      setSidebarOpen(false);
     } catch (error) {
       setWelcomeError(errorMessage(error));
     } finally {
@@ -243,11 +291,37 @@ function App() {
       const opened = await api.openProject(projectPath);
       setProject(opened);
       await loadTags(opened.path);
+      setSidebarOpen(false);
     } catch (error) {
       setWelcomeError(errorMessage(error));
     } finally {
       setWelcomeLoading(false);
     }
+  };
+
+  const handleOpenLocalProject = async (path: string) => {
+    setWelcomeError(null);
+    setWelcomeLoading(true);
+    try {
+      const opened = await api.openProject(path);
+      setProject(opened);
+      await loadTags(opened.path);
+      setSidebarOpen(false);
+    } catch (error) {
+      setWelcomeError(errorMessage(error));
+    } finally {
+      setWelcomeLoading(false);
+    }
+  };
+
+  const handleCloseProject = () => {
+    setProject(null);
+    setTags([]);
+    setActiveChapter(null);
+    setChapterDetail(null);
+    setActiveScene(null);
+    setActiveNote(null);
+    setSidebarOpen(false);
   };
 
   const handleSceneClick = (scene: SceneSummary) => {
@@ -424,9 +498,12 @@ function App() {
         <WelcomeScreen
           onOpen={handleOpenProject}
           onCreate={handleCreateProject}
+          onOpenLocal={handleOpenLocalProject}
           onOpenOptions={() => setShowOptions(true)}
-          loading={welcomeLoading}
+          loading={welcomeLoading || (isTauri() && !runtime)}
           error={welcomeError}
+          mobile={isMobile}
+          localProjects={localProjects}
         />
         {createParentPath && (
           <PromptDialog
@@ -461,7 +538,23 @@ function App() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="app">
+        <div className={`app${sidebarOpen ? " sidebar-open" : ""}`}>
+          {isNarrow && (
+            <button
+              className="sidebar-toggle"
+              type="button"
+              aria-label="Open sidebar"
+              onClick={() => setSidebarOpen(true)}
+            >
+              ☰
+            </button>
+          )}
+          {isNarrow && sidebarOpen && (
+            <div
+              className="sidebar-backdrop"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
           <LeftPanel
             project={project}
             activeChapter={activeChapter}
@@ -469,10 +562,12 @@ function App() {
             activeDragChapterId={activeDragChapter?.chapterId ?? null}
             isDraggingScene={activeDragScene !== null}
             notesRefreshKey={notesRefreshKey}
+            isMobile={isMobile}
             onSelectChapter={loadChapter}
             onSelectNote={selectNote}
             requestPrompt={requestPrompt}
             onOpenOptions={() => setShowOptions(true)}
+            onCloseProject={handleCloseProject}
             onProjectUpdated={(p) => {
               setProject(p);
               if (activeChapter) {

@@ -64,11 +64,14 @@
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 #root {
   height: 100vh;
+  height: 100dvh;
 }
 
 button {
@@ -93,8 +96,11 @@ textarea {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  height: 100dvh;
   gap: 1rem;
   text-align: center;
+  padding: env(safe-area-inset-top) 1.25rem env(safe-area-inset-bottom);
+  overflow: auto;
 }
 
 .welcome h1 {
@@ -117,6 +123,47 @@ textarea {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.welcome-projects {
+  width: min(22rem, 100%);
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+.welcome-projects h2 {
+  font-size: 0.85rem;
+  font-weight: normal;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.welcome-projects-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.welcome-project-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.welcome-project-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-editor);
+  color: var(--text);
+}
+
+.welcome-project-btn:hover {
+  background: var(--btn-hover);
 }
 
 .welcome-icon {
@@ -240,6 +287,7 @@ textarea {
 .app {
   display: flex;
   height: 100vh;
+  height: 100dvh;
 }
 
 .left-column {
@@ -248,6 +296,7 @@ textarea {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   background: var(--bg-sidebar);
   color: var(--text-sidebar);
   border-right: 1px solid var(--app-divider);
@@ -309,6 +358,12 @@ textarea {
   white-space: nowrap;
 }
 
+.sidebar-header-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.35rem;
+}
+
 .sidebar-options-btn {
   flex-shrink: 0;
   background: var(--btn-sidebar-bg);
@@ -342,6 +397,17 @@ textarea {
   border-radius: var(--radius);
   font-size: 0.8rem;
   color: var(--sidebar-error-text);
+}
+
+.sidebar-status {
+  margin: 0 1rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--btn-sidebar-bg);
+  border: 1px solid var(--btn-sidebar-border);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  color: var(--text-sidebar);
+  word-break: break-word;
 }
 
 .sidebar-actions {
@@ -1465,4 +1531,78 @@ textarea {
   justify-content: flex-end;
   padding-top: 0.5rem;
   border-top: 1px solid var(--border);
+}
+
+.sidebar-toggle,
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: calc(0.6rem + env(safe-area-inset-top));
+    left: calc(0.6rem + env(safe-area-inset-left));
+    z-index: 40;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg-editor);
+    color: var(--text);
+    font-size: 1.2rem;
+    box-shadow: var(--card-shadow);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--dialog-backdrop);
+  }
+
+  .left-column {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    width: min(20rem, 86vw);
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .app.sidebar-open .left-column {
+    transform: translateX(0);
+  }
+
+  .app.sidebar-open .sidebar-toggle {
+    display: none;
+  }
+
+  .main {
+    padding-top: calc(3.4rem + env(safe-area-inset-top));
+  }
+
+  .dialog {
+    min-width: 0;
+    width: calc(100vw - 2rem);
+    max-width: 26rem;
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+  }
+
+  .welcome-actions {
+    flex-direction: column;
+    width: min(22rem, 100%);
+  }
+
+  .welcome-actions .btn {
+    width: 100%;
+  }
 }

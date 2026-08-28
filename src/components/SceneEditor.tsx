@@ -15,9 +15,10 @@ import * as api from "../api";
 const EDITOR_PADDING = "1.5rem";
 
 function maxPageWidthForWindow(bodyWidth: number): number {
+  const usable = Math.max(200, (bodyWidth > 0 ? bodyWidth : window.innerWidth) - 8);
   const windowCap = Math.floor(window.innerWidth * (2 / 3));
-  const available = bodyWidth > 0 ? Math.min(windowCap, bodyWidth) : windowCap;
-  return Math.max(MIN_PAGE_WIDTH, available);
+  const preferred = Math.max(MIN_PAGE_WIDTH, Math.min(windowCap, usable));
+  return Math.min(preferred, usable);
 }
 
 interface SceneEditorProps {
@@ -111,6 +112,9 @@ export function SceneEditor({
       })
       .then((fn) => {
         unlisten = fn;
+      })
+      .catch(() => {
+        // Window events are not available on mobile.
       });
 
     return () => {

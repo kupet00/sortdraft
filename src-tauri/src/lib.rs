@@ -1,4 +1,5 @@
 mod notes;
+mod platform;
 mod project;
 mod tags;
 
@@ -18,10 +19,12 @@ use project::{
     RenameSceneRequest, ReorderChaptersRequest, ReorderScenesRequest, UpdateSceneContentRequest,
     UpdateSceneMetaRequest,
 };
+use platform::{LocalProject, RuntimeInfo};
 use tags::{
     create_tag, delete_tag, list_tags, update_scene_tags, update_tag, CreateTagRequest,
     DeleteTagRequest, ListTagsRequest, TagDefinition, UpdateSceneTagsRequest, UpdateTagRequest,
 };
+use tauri::AppHandle;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -58,6 +61,8 @@ pub fn run() {
             update_tag_cmd,
             delete_tag_cmd,
             update_scene_tags_cmd,
+            runtime_info_cmd,
+            list_local_projects_cmd,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -206,4 +211,14 @@ fn delete_tag_cmd(req: DeleteTagRequest) -> Result<Vec<TagDefinition>, String> {
 #[tauri::command]
 fn update_scene_tags_cmd(req: UpdateSceneTagsRequest) -> Result<ChapterDetail, String> {
     update_scene_tags(req)
+}
+
+#[tauri::command]
+fn runtime_info_cmd(app: AppHandle) -> Result<RuntimeInfo, String> {
+    platform::runtime_info(&app)
+}
+
+#[tauri::command]
+fn list_local_projects_cmd(app: AppHandle) -> Result<Vec<LocalProject>, String> {
+    platform::list_local_projects(&app)
 }
