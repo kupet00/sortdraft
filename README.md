@@ -60,3 +60,7 @@ Workflow file: [`.github/workflows/build.yml`](.github/workflows/build.yml)
 - Click a card to write/edit the scene
 - Right-click cards to assign coloured tags (not included in export)
 - Export a book to a single `.txt` file in scene order
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
