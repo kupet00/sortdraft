@@ -16,7 +16,9 @@ interface PromptRequest {
 interface SidebarProps {
   project: Project;
   activeChapter: ActiveChapter | null;
+  isTimelineActive: boolean;
   onSelectChapter: (bookId: string, chapterId: string) => void;
+  onSelectTimeline: () => void;
   onProjectUpdated: (project: Project) => void;
   onOpenOptions: () => void;
   requestPrompt: (request: PromptRequest) => Promise<string | null>;
@@ -33,7 +35,9 @@ function errorMessage(error: unknown): string {
 export function Sidebar({
   project,
   activeChapter,
+  isTimelineActive,
   onSelectChapter,
+  onSelectTimeline,
   onProjectUpdated,
   onOpenOptions,
   requestPrompt,
@@ -190,6 +194,15 @@ export function Sidebar({
           <div className="sidebar-empty">Create a book to get started</div>
         )}
       </nav>
+      <div className="sidebar-menu-item">
+        <button
+          type="button"
+          className={`sidebar-menu-btn sidebar-timeline-btn${isTimelineActive ? " active" : ""}`}
+          onClick={onSelectTimeline}
+        >
+          Timeline
+        </button>
+      </div>
     </aside>
   );
 }

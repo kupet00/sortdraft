@@ -34,6 +34,7 @@ import { LeftPanel } from "./components/LeftPanel";
 import { NoteEditor } from "./components/NoteEditor";
 import { SceneEditor } from "./components/SceneEditor";
 import { WelcomeScreen } from "./components/WelcomeScreen";
+import { TimelineCanvas } from "./components/TimelineCanvas";
 import "./App.css";
 
 function errorMessage(error: unknown): string {
@@ -102,6 +103,7 @@ function App() {
   const [activeDragChapter, setActiveDragChapter] =
     useState<DraggedChapter | null>(null);
   const [activeNote, setActiveNote] = useState<NoteSummary | null>(null);
+  const [isTimelineActive, setIsTimelineActive] = useState(false);
   const [notesRefreshKey, setNotesRefreshKey] = useState(0);
   const [corkboardGridCols, setCorkboardGridCols] = useState(4);
   const handleGridColsChange = useCallback((cols: number) => {
@@ -150,6 +152,7 @@ function App() {
       setActiveChapter({ bookId, chapterId });
       setActiveScene(null);
       setActiveNote(null);
+      setIsTimelineActive(false);
     },
     [project],
   );
@@ -160,6 +163,7 @@ function App() {
       setActiveChapter(null);
       setChapterDetail(null);
       setActiveScene(null);
+      setIsTimelineActive(false);
     }
   }, []);
 
@@ -257,6 +261,24 @@ function App() {
       chapterId: activeChapter.chapterId,
       sceneId: scene.id,
     });
+  };
+
+  const selectTimeline = () => {
+    setIsTimelineActive(true);
+    setActiveChapter(null);
+    setChapterDetail(null);
+    setActiveScene(null);
+    setActiveNote(null);
+  };
+
+  const openTimelineScene = async (bookId: string, chapterId: string, sceneId: string) => {
+    if (!project) return;
+    const detail = await api.getChapter(project.path, bookId, chapterId);
+    setChapterDetail(detail);
+    setActiveChapter({ bookId, chapterId });
+    setActiveScene({ bookId, chapterId, sceneId });
+    setActiveNote(null);
+    setIsTimelineActive(false);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -465,11 +487,13 @@ function App() {
           <LeftPanel
             project={project}
             activeChapter={activeChapter}
+            isTimelineActive={isTimelineActive}
             activeNoteId={activeNote?.id ?? null}
             activeDragChapterId={activeDragChapter?.chapterId ?? null}
             isDraggingScene={activeDragScene !== null}
             notesRefreshKey={notesRefreshKey}
             onSelectChapter={loadChapter}
+            onSelectTimeline={selectTimeline}
             onSelectNote={selectNote}
             requestPrompt={requestPrompt}
             onOpenOptions={() => setShowOptions(true)}
@@ -488,10 +512,18 @@ function App() {
           />
 
           <main className="main">
-            {!activeChapter && !activeNote && (
+            {!activeChapter && !activeNote && !isTimelineActive && (
               <div className="empty-state">
                 Select a chapter or note to begin
               </div>
+            )}
+
+            {isTimelineActive && (
+              <TimelineCanvas
+                project={project}
+                requestPrompt={requestPrompt}
+                onOpenScene={openTimelineScene}
+              />
             )}
 
             {activeChapter && chapterDetail && !activeScene && !activeNote && (

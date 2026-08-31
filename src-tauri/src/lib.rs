@@ -11,12 +11,12 @@ use project::{
     create_book, create_chapter, create_project, create_scene, delete_scene, export_book,
     get_chapter, get_project, get_scene_content, move_chapter, move_scene, open_project,
     rename_book, rename_chapter, rename_scene, reorder_chapters, reorder_scenes,
-    update_scene_content, update_scene_meta, CreateBookRequest, CreateChapterRequest,
+    save_timeline, get_timeline, update_scene_content, update_scene_meta, CreateBookRequest, CreateChapterRequest,
     CreateProjectRequest, CreateSceneRequest, DeleteSceneRequest, ExportBookRequest,
     GetChapterRequest, GetSceneContentRequest, MoveChapterRequest, MoveChapterResult,
     MoveSceneRequest, Project, ChapterDetail, RenameBookRequest, RenameChapterRequest,
     RenameSceneRequest, ReorderChaptersRequest, ReorderScenesRequest, UpdateSceneContentRequest,
-    UpdateSceneMetaRequest,
+    UpdateSceneMetaRequest, SaveTimelineRequest, TimelineRequest,
 };
 use tags::{
     create_tag, delete_tag, list_tags, update_scene_tags, update_tag, CreateTagRequest,
@@ -31,6 +31,8 @@ pub fn run() {
             create_project_cmd,
             open_project_cmd,
             get_project_cmd,
+            get_timeline_cmd,
+            save_timeline_cmd,
             create_book_cmd,
             create_chapter_cmd,
             create_scene_cmd,
@@ -75,6 +77,16 @@ fn open_project_cmd(path: String) -> Result<Project, String> {
 #[tauri::command]
 fn get_project_cmd(path: String) -> Result<Project, String> {
     get_project(&path)
+}
+
+#[tauri::command]
+fn get_timeline_cmd(req: TimelineRequest) -> Result<project::Timeline, String> {
+    get_timeline(req)
+}
+
+#[tauri::command]
+fn save_timeline_cmd(req: SaveTimelineRequest) -> Result<project::Timeline, String> {
+    save_timeline(req)
 }
 
 #[tauri::command]

@@ -7,6 +7,7 @@ import type {
   Project,
   ScenePosition,
   TagDefinition,
+  Timeline,
 } from "./types";
 
 export async function createProject(
@@ -22,6 +23,19 @@ export async function openProject(path: string): Promise<Project> {
 
 export async function getProject(path: string): Promise<Project> {
   return invoke("get_project_cmd", { path });
+}
+
+export async function getTimeline(projectPath: string): Promise<Timeline> {
+  return invoke("get_timeline_cmd", { req: { project_path: projectPath } });
+}
+
+export async function saveTimeline(
+  projectPath: string,
+  timeline: Timeline,
+): Promise<Timeline> {
+  return invoke("save_timeline_cmd", {
+    req: { project_path: projectPath, timeline },
+  });
 }
 
 export async function createBook(

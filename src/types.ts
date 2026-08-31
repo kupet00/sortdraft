@@ -70,3 +70,24 @@ export interface CreateNoteResult {
   notes: NoteSummary[];
   created_id: string;
 }
+
+export type TimelineNodeKind = "text" | "scene" | "line";
+
+export interface TimelineNode {
+  id: string;
+  kind: TimelineNodeKind;
+  label: string;
+  x: number;
+  y: number;
+  book_id?: string;
+  chapter_id?: string;
+  scene_id?: string;
+  color?: string;
+  line_id?: string;
+  line_ids?: string[];
+  orientation?: "horizontal" | "vertical";
+}
+
+export interface Timeline {
+  nodes: TimelineNode[];
+}

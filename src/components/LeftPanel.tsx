@@ -12,11 +12,13 @@ interface PromptRequest {
 interface LeftPanelProps {
   project: Project;
   activeChapter: ActiveChapter | null;
+  isTimelineActive: boolean;
   activeNoteId: string | null;
   activeDragChapterId: string | null;
   isDraggingScene: boolean;
   notesRefreshKey: number;
   onSelectChapter: (bookId: string, chapterId: string) => void;
+  onSelectTimeline: () => void;
   onSelectNote: (note: NoteSummary | null) => void;
   onProjectUpdated: (project: Project) => void;
   onOpenOptions: () => void;
@@ -26,11 +28,13 @@ interface LeftPanelProps {
 export function LeftPanel({
   project,
   activeChapter,
+  isTimelineActive,
   activeNoteId,
   activeDragChapterId,
   isDraggingScene,
   notesRefreshKey,
   onSelectChapter,
+  onSelectTimeline,
   onSelectNote,
   onProjectUpdated,
   onOpenOptions,
@@ -42,7 +46,9 @@ export function LeftPanel({
         <Sidebar
           project={project}
           activeChapter={activeChapter}
+          isTimelineActive={isTimelineActive}
           onSelectChapter={onSelectChapter}
+          onSelectTimeline={onSelectTimeline}
           requestPrompt={requestPrompt}
           activeDragChapterId={activeDragChapterId}
           isDraggingScene={isDraggingScene}

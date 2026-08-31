@@ -78,6 +78,43 @@ pub struct ChapterDetail {
     pub scenes: Vec<SceneSummary>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TimelineNodeKind {
+    Text,
+    Scene,
+    Line,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimelineNode {
+    pub id: String,
+    pub kind: TimelineNodeKind,
+    pub label: String,
+    pub x: f64,
+    pub y: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub book_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chapter_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scene_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub line_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub line_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub orientation: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Timeline {
+    #[serde(default)]
+    pub nodes: Vec<TimelineNode>,
+}
+
 // ── Request types ─────────────────────────────────────────────────────────────
 
 #[derive(Debug, Deserialize)]
@@ -232,6 +269,17 @@ pub struct MoveChapterResult {
     pub chapter_id: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct TimelineRequest {
+    pub project_path: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SaveTimelineRequest {
+    pub project_path: String,
+    pub timeline: Timeline,
+}
+
 // ── Path helpers ──────────────────────────────────────────────────────────────
 
 fn books_dir(project: &Path) -> PathBuf {
@@ -256,6 +304,10 @@ fn scenes_dir(project: &Path, book_id: &str, chapter_id: &str) -> PathBuf {
 
 fn scene_file(project: &Path, book_id: &str, chapter_id: &str, scene_id: &str) -> PathBuf {
     scenes_dir(project, book_id, chapter_id).join(format!("{scene_id}.txt"))
+}
+
+fn timeline_file(project: &Path) -> PathBuf {
+    project.join("timeline.json")
 }
 
 fn slugify(input: &str) -> String {
@@ -449,6 +501,20 @@ pub fn get_project(path: &str) -> Result<Project, String> {
         name: meta.name,
         books,
     })
+}
+
+pub fn get_timeline(req: TimelineRequest) -> Result<Timeline, String> {
+    let path = timeline_file(Path::new(&req.project_path));
+    if !path.exists() {
+        return Ok(Timeline::default());
+    }
+    read_json(&path)
+}
+
+pub fn save_timeline(req: SaveTimelineRequest) -> Result<Timeline, String> {
+    let path = timeline_file(Path::new(&req.project_path));
+    write_json(&path, &req.timeline)?;
+    Ok(req.timeline)
 }
 
 pub fn create_book(req: CreateBookRequest) -> Result<Project, String> {
