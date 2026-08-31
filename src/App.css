@@ -1322,7 +1322,8 @@ textarea {
 }
 
 .scene-editor-backdrop,
-.scene-content {
+.scene-content,
+.scene-spellcheck-backdrop-inner {
   padding: 1.5rem;
   font-size: var(--font-size-editor);
   line-height: 1.8;
@@ -1369,6 +1370,26 @@ textarea {
 .sentence-dimmed {
   color: var(--text-muted);
   opacity: 0.45;
+}
+
+.scene-spellcheck-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-spellcheck-backdrop-inner {
+  color: transparent;
+  background: transparent;
+  will-change: transform;
+}
+
+.spellcheck-error {
+  text-decoration: underline wavy var(--error-text, #d33);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .scene-title-input {
@@ -1434,7 +1455,34 @@ textarea {
 
 .scene-editor-footer-stats {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   text-align: right;
+}
+
+.scene-editor-spellcheck-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.scene-editor-spellcheck-language {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.15rem 0.3rem;
+}
+
+.scene-editor-spellcheck-language:disabled {
+  opacity: 0.5;
+}
+
+.scene-editor-wordcount {
+  white-space: nowrap;
 }
 
 .scene-editor-loading {

@@ -1,4 +1,8 @@
 import { DEFAULT_EDITOR_FONT_FAMILY, isEditorFontId } from "./fonts";
+import {
+  DEFAULT_SPELLCHECK_LANGUAGE,
+  isSpellCheckLanguage,
+} from "../utils/spellcheck";
 import type { AppSettings } from "./types";
 import { defaultSettings } from "./themes";
 
@@ -19,6 +23,9 @@ export function loadSettings(): AppSettings {
       editorFontFamily: isEditorFontId(parsed.editorFontFamily ?? "")
         ? parsed.editorFontFamily!
         : DEFAULT_EDITOR_FONT_FAMILY,
+      spellCheckLanguage: isSpellCheckLanguage(parsed.spellCheckLanguage ?? "")
+        ? parsed.spellCheckLanguage!
+        : DEFAULT_SPELLCHECK_LANGUAGE,
       customColors: {
         ...defaultSettings().customColors,
         ...parsed.customColors,

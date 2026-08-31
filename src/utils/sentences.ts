@@ -27,10 +27,20 @@ export function splitIntoSentences(text: string): SentenceSpan[] {
     }
 
     if (ch === "\n") {
-      let end = i + 1;
-      spans.push({ start, end });
-      start = end;
-      i = end;
+      // A lone newline is just a wrapped/hard-wrapped line break within the
+      // same sentence. Only a blank line (paragraph break) ends the span.
+      if (text[i + 1] === "\n") {
+        let end = i + 1;
+        while (end < text.length && text[end] === "\n") {
+          end++;
+        }
+        spans.push({ start, end });
+        start = end;
+        i = end;
+        continue;
+      }
+
+      i++;
       continue;
     }
 

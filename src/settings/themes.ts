@@ -1,4 +1,5 @@
 import { DEFAULT_EDITOR_FONT_FAMILY } from "./fonts";
+import { DEFAULT_SPELLCHECK_LANGUAGE } from "../utils/spellcheck";
 import type { AppSettings, ThemeColors } from "./types";
 import {
   DEFAULT_EDITOR_FONT_SIZE,
@@ -56,6 +57,8 @@ export function defaultSettings(): AppSettings {
     editorFontFamily: DEFAULT_EDITOR_FONT_FAMILY,
     pageWidth: DEFAULT_PAGE_WIDTH,
     typewriterMode: false,
+    spellCheckEnabled: true,
+    spellCheckLanguage: DEFAULT_SPELLCHECK_LANGUAGE,
     themeMode: "light",
     customColors: { ...lightTheme },
   };

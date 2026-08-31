@@ -9,6 +9,7 @@ import {
 } from "react";
 import { applySettings } from "./applySettings";
 import { isEditorFontId } from "./fonts";
+import { isSpellCheckLanguage } from "../utils/spellcheck";
 import { loadSettings, saveSettings } from "./storage";
 import { defaultSettings, themePresets } from "./themes";
 import type { AppSettings, ThemeColors, ThemeMode } from "./types";
@@ -22,6 +23,8 @@ interface SettingsContextValue {
   setEditorFontFamily: (family: string) => void;
   setPageWidth: (width: number) => void;
   setTypewriterMode: (enabled: boolean) => void;
+  setSpellCheckEnabled: (enabled: boolean) => void;
+  setSpellCheckLanguage: (language: string) => void;
   setThemeMode: (mode: ThemeMode) => void;
   setCustomColor: (key: keyof ThemeColors, value: string) => void;
   resetCustomColors: () => void;
@@ -74,6 +77,19 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
+  const setSpellCheckEnabled = useCallback(
+    (enabled: boolean) => update({ spellCheckEnabled: enabled }),
+    [update],
+  );
+
+  const setSpellCheckLanguage = useCallback(
+    (language: string) => {
+      if (!isSpellCheckLanguage(language)) return;
+      update({ spellCheckLanguage: language });
+    },
+    [update],
+  );
+
   const setThemeMode = useCallback((mode: ThemeMode) => {
     setSettings((prev) => {
       if (mode === "custom" && prev.themeMode !== "custom") {
@@ -122,6 +138,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       setEditorFontFamily,
       setPageWidth,
       setTypewriterMode,
+      setSpellCheckEnabled,
+      setSpellCheckLanguage,
       setThemeMode,
       setCustomColor,
       resetCustomColors,
@@ -135,6 +153,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       setEditorFontFamily,
       setPageWidth,
       setTypewriterMode,
+      setSpellCheckEnabled,
+      setSpellCheckLanguage,
       setThemeMode,
       setCustomColor,
       resetCustomColors,

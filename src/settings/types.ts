@@ -25,6 +25,8 @@ export interface AppSettings {
   editorFontFamily: string;
   pageWidth: number;
   typewriterMode: boolean;
+  spellCheckEnabled: boolean;
+  spellCheckLanguage: string;
   themeMode: ThemeMode;
   customColors: ThemeColors;
 }

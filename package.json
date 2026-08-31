@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "postinstall": "node scripts/copy-dictionaries.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -17,14 +18,31 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "nspell": "^2.1.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
+    "@types/nspell": "^2.1.6",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "dictionary-cy": "^2.0.0",
+    "dictionary-da": "^6.0.0",
+    "dictionary-de": "^3.0.0",
+    "dictionary-en": "^4.0.0",
+    "dictionary-en-gb": "^3.0.0",
+    "dictionary-es": "^4.0.0",
+    "dictionary-fr": "^3.0.0",
+    "dictionary-ga": "^3.0.0",
+    "dictionary-is": "^2.0.0",
+    "dictionary-it": "^2.0.0",
+    "dictionary-nb": "^3.0.0",
+    "dictionary-nl": "^2.0.0",
+    "dictionary-pl": "^2.0.0",
+    "dictionary-pt": "^4.0.0",
+    "dictionary-sv": "^4.0.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
   }

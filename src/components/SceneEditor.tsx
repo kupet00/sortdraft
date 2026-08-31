@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { useSettings } from "../settings/SettingsContext";
 import type { ActiveScene } from "../types";
 import { MIN_PAGE_WIDTH } from "../settings/types";
@@ -7,6 +8,12 @@ import {
   splitIntoSentences,
 } from "../utils/sentences";
 import { measureSentenceCenter } from "../utils/caretPosition";
+import {
+  findMisspelledSpans,
+  loadSpeller,
+  SPELLCHECK_LANGUAGES,
+  type WordSpan,
+} from "../utils/spellcheck";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isAppFullscreen, setAppFullscreen } from "../utils/windowFullscreen";
@@ -37,7 +44,7 @@ export function SceneEditor({
   onMetaChange,
   onClose,
 }: SceneEditorProps) {
-  const { settings, setTypewriterMode, setEditorFontSize, setPageWidth } =
+  const { settings, setTypewriterMode, setEditorFontSize, setPageWidth, setSpellCheckEnabled, setSpellCheckLanguage } =
     useSettings();
   const [content, setContent] = useState("");
   const [title, setTitle] = useState(sceneTitle);
@@ -48,10 +55,13 @@ export function SceneEditor({
     maxPageWidthForWindow(0),
   );
   const [focusMode, setFocusMode] = useState(false);
+  const [misspelledSpans, setMisspelledSpans] = useState<WordSpan[]>([]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const metaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
+  const spellcheckRef = useRef<HTMLDivElement>(null);
+  const spellcheckInnerRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const typewriterMode = settings.typewriterMode;
@@ -59,6 +69,36 @@ export function SceneEditor({
   const effectivePageWidth = Math.min(pageWidth, maxPageWidth);
   const sentences = useMemo(() => splitIntoSentences(content), [content]);
   const activeIndex = activeSentenceIndex(sentences, caret);
+  const spellCheckEnabled = settings.spellCheckEnabled;
+  const spellCheckLanguage = settings.spellCheckLanguage;
+  const visibleMisspelledSpans = useMemo(() => {
+    if (!typewriterMode) return misspelledSpans;
+    const active = sentences[activeIndex];
+    if (!active) return [];
+    return misspelledSpans.filter(
+      (span) => span.start >= active.start && span.end <= active.end,
+    );
+  }, [misspelledSpans, typewriterMode, sentences, activeIndex]);
+
+  useEffect(() => {
+    if (!spellCheckEnabled) {
+      setMisspelledSpans([]);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      loadSpeller(spellCheckLanguage).then((speller) => {
+        if (cancelled) return;
+        setMisspelledSpans(findMisspelledSpans(speller, content));
+      });
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [content, spellCheckEnabled, spellCheckLanguage]);
 
   useEffect(() => {
     setTitle(sceneTitle);
@@ -155,9 +195,15 @@ export function SceneEditor({
   const syncScroll = useCallback(() => {
     const textarea = textareaRef.current;
     const backdrop = backdropRef.current;
-    if (!textarea || !backdrop) return;
-    backdrop.scrollTop = textarea.scrollTop;
-    backdrop.scrollLeft = textarea.scrollLeft;
+    const spellcheckInner = spellcheckInnerRef.current;
+    if (!textarea) return;
+    if (backdrop) {
+      backdrop.scrollTop = textarea.scrollTop;
+      backdrop.scrollLeft = textarea.scrollLeft;
+    }
+    if (spellcheckInner) {
+      spellcheckInner.style.transform = `translate(${-textarea.scrollLeft}px, ${-textarea.scrollTop}px)`;
+    }
   }, []);
 
   const centerActiveSentence = useCallback(() => {
@@ -178,6 +224,10 @@ export function SceneEditor({
     textarea.style.paddingBottom = edgePadding;
     backdrop.style.paddingTop = edgePadding;
     backdrop.style.paddingBottom = edgePadding;
+    if (spellcheckInnerRef.current) {
+      spellcheckInnerRef.current.style.paddingTop = edgePadding;
+      spellcheckInnerRef.current.style.paddingBottom = edgePadding;
+    }
 
     const sentenceCenter = measureSentenceCenter(textarea, content, span);
     textarea.scrollTop = Math.max(0, sentenceCenter - halfView);
@@ -201,7 +251,18 @@ export function SceneEditor({
     textarea.style.paddingBottom = EDITOR_PADDING;
     backdrop.style.paddingTop = EDITOR_PADDING;
     backdrop.style.paddingBottom = EDITOR_PADDING;
-  }, []);
+    if (spellcheckInnerRef.current) {
+      spellcheckInnerRef.current.style.paddingTop = EDITOR_PADDING;
+      spellcheckInnerRef.current.style.paddingBottom = EDITOR_PADDING;
+    }
+    // Shrinking the padding can leave scrollTop pointing past the new
+    // (much shorter) scrollable area, which shows as blank space above the text.
+    textarea.scrollTop = Math.max(
+      0,
+      Math.min(textarea.scrollTop, textarea.scrollHeight - textarea.clientHeight),
+    );
+    syncScroll();
+  }, [syncScroll]);
 
   useEffect(() => {
     if (!typewriterMode || loading) {
@@ -222,6 +283,7 @@ export function SceneEditor({
     maxPageWidth,
     settings.editorFontSize,
     focusMode,
+    spellCheckEnabled,
   ]);
 
   useEffect(() => {
@@ -304,6 +366,10 @@ export function SceneEditor({
       editorFontSize={settings.editorFontSize}
       onPageWidthChange={setPageWidth}
       onEditorFontSizeChange={setEditorFontSize}
+      spellCheckEnabled={spellCheckEnabled}
+      spellCheckLanguage={spellCheckLanguage}
+      onSpellCheckEnabledChange={setSpellCheckEnabled}
+      onSpellCheckLanguageChange={setSpellCheckLanguage}
     />
   );
 
@@ -387,9 +453,41 @@ export function SceneEditor({
                     onClick={updateCaret}
                     onScroll={syncScroll}
                     placeholder="Write your scene here…"
-                    spellCheck
+                    spellCheck={settings.spellCheckEnabled}
                     autoFocus
                   />
+                  {spellCheckEnabled && (
+                    <div
+                      ref={spellcheckRef}
+                      className="scene-spellcheck-backdrop"
+                      aria-hidden
+                    >
+                      <div
+                        ref={spellcheckInnerRef}
+                        className="scene-spellcheck-backdrop-inner"
+                      >
+                        {(() => {
+                          const nodes: ReactNode[] = [];
+                          let cursor = 0;
+                          visibleMisspelledSpans.forEach((span, index) => {
+                            if (span.start > cursor) {
+                              nodes.push(content.slice(cursor, span.start));
+                            }
+                            nodes.push(
+                              <span key={index} className="spellcheck-error">
+                                {content.slice(span.start, span.end)}
+                              </span>,
+                            );
+                            cursor = span.end;
+                          });
+                          if (cursor < content.length) {
+                            nodes.push(content.slice(cursor));
+                          }
+                          return nodes;
+                        })()}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -413,6 +511,10 @@ interface EditorBottomBarProps {
   editorFontSize: number;
   onPageWidthChange: (width: number) => void;
   onEditorFontSizeChange: (size: number) => void;
+  spellCheckEnabled: boolean;
+  spellCheckLanguage: string;
+  onSpellCheckEnabledChange: (enabled: boolean) => void;
+  onSpellCheckLanguageChange: (language: string) => void;
 }
 
 function EditorBottomBar({
@@ -422,6 +524,10 @@ function EditorBottomBar({
   editorFontSize,
   onPageWidthChange,
   onEditorFontSizeChange,
+  spellCheckEnabled,
+  spellCheckLanguage,
+  onSpellCheckEnabledChange,
+  onSpellCheckLanguageChange,
 }: EditorBottomBarProps) {
   return (
     <div className="scene-editor-footer">
@@ -452,7 +558,29 @@ function EditorBottomBar({
         </label>
       </div>
       <div className="scene-editor-footer-stats">
-        {wordCount.toLocaleString()} {wordCount === 1 ? "word" : "words"}
+        <label className="scene-editor-spellcheck-toggle">
+          <input
+            type="checkbox"
+            checked={spellCheckEnabled}
+            onChange={(e) => onSpellCheckEnabledChange(e.target.checked)}
+          />
+          <span>Spellcheck</span>
+        </label>
+        <select
+          className="scene-editor-spellcheck-language"
+          value={spellCheckLanguage}
+          disabled={!spellCheckEnabled}
+          onChange={(e) => onSpellCheckLanguageChange(e.target.value)}
+        >
+          {SPELLCHECK_LANGUAGES.map((lang) => (
+            <option key={lang.code} value={lang.code}>
+              {lang.label}
+            </option>
+          ))}
+        </select>
+        <span className="scene-editor-wordcount">
+          {wordCount.toLocaleString()} {wordCount === 1 ? "word" : "words"}
+        </span>
       </div>
     </div>
   );
