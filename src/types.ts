@@ -91,3 +91,13 @@ export interface TimelineNode {
 export interface Timeline {
   nodes: TimelineNode[];
 }
+
+export interface DictionaryWord {
+  word: string;
+  case_sensitive: boolean;
+}
+
+export interface ProjectDictionary {
+  ignored: DictionaryWord[];
+  added: DictionaryWord[];
+}

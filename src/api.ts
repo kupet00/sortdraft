@@ -5,6 +5,7 @@ import type {
   MoveChapterResult,
   NoteSummary,
   Project,
+  ProjectDictionary,
   ScenePosition,
   TagDefinition,
   Timeline,
@@ -355,5 +356,29 @@ export async function deleteNote(
 ): Promise<NoteSummary[]> {
   return invoke("delete_note_cmd", {
     req: { project_path: projectPath, note_id: noteId },
+  });
+}
+
+export async function getSpellcheckDictionary(
+  projectPath: string,
+): Promise<ProjectDictionary> {
+  return invoke("get_spellcheck_dictionary_cmd", {
+    req: { project_path: projectPath },
+  });
+}
+
+export async function updateSpellcheckDictionary(
+  projectPath: string,
+  action: "ignore" | "add" | "remove_ignore" | "remove_add",
+  word: string,
+  caseSensitive = false,
+): Promise<ProjectDictionary> {
+  return invoke("update_spellcheck_dictionary_cmd", {
+    req: {
+      project_path: projectPath,
+      action,
+      word,
+      case_sensitive: caseSensitive,
+    },
   });
 }

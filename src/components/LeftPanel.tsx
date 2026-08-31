@@ -23,6 +23,8 @@ interface LeftPanelProps {
   onProjectUpdated: (project: Project) => void;
   onOpenOptions: () => void;
   requestPrompt: (request: PromptRequest) => Promise<string | null>;
+  isDictionaryActive: boolean;
+  onSelectDictionary: () => void;
 }
 
 export function LeftPanel({
@@ -39,6 +41,8 @@ export function LeftPanel({
   onProjectUpdated,
   onOpenOptions,
   requestPrompt,
+  isDictionaryActive,
+  onSelectDictionary,
 }: LeftPanelProps) {
   return (
     <div className="left-column">
@@ -54,6 +58,8 @@ export function LeftPanel({
           isDraggingScene={isDraggingScene}
           onProjectUpdated={onProjectUpdated}
           onOpenOptions={onOpenOptions}
+                  isDictionaryActive={isDictionaryActive}
+                  onSelectDictionary={onSelectDictionary}
         />
       </div>
       <NotesPanel

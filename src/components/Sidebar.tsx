@@ -17,8 +17,10 @@ interface SidebarProps {
   project: Project;
   activeChapter: ActiveChapter | null;
   isTimelineActive: boolean;
+  isDictionaryActive: boolean;
   onSelectChapter: (bookId: string, chapterId: string) => void;
   onSelectTimeline: () => void;
+  onSelectDictionary: () => void;
   onProjectUpdated: (project: Project) => void;
   onOpenOptions: () => void;
   requestPrompt: (request: PromptRequest) => Promise<string | null>;
@@ -36,8 +38,10 @@ export function Sidebar({
   project,
   activeChapter,
   isTimelineActive,
+  isDictionaryActive,
   onSelectChapter,
   onSelectTimeline,
+  onSelectDictionary,
   onProjectUpdated,
   onOpenOptions,
   requestPrompt,
@@ -201,6 +205,15 @@ export function Sidebar({
           onClick={onSelectTimeline}
         >
           Timeline
+        </button>
+      </div>
+      <div className="sidebar-menu-item">
+        <button
+          type="button"
+          className={`sidebar-menu-btn sidebar-dictionary-btn${isDictionaryActive ? " active" : ""}`}
+          onClick={onSelectDictionary}
+        >
+          Spellcheck Dictionary
         </button>
       </div>
     </aside>

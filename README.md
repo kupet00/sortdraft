@@ -109,6 +109,7 @@ Tagged releases are also pushed to [itch.io](https://itch.io/) with [butler](htt
 - Built-in spellcheck with underlines for misspelled words, toggled from the bottom bar
 - 15 languages included: Danish, Dutch, English (US), English (UK), French, German, Icelandic, Irish, Italian, Norwegian, Polish, Portuguese, Spanish, Swedish, and Welsh
 - Switch languages per session from a dropdown
+- Per-project dictionary for added and ignored words, with optional case-sensitive matching
 
 ### Settings
 

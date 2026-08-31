@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
@@ -113,6 +113,48 @@ pub struct TimelineNode {
 pub struct Timeline {
     #[serde(default)]
     pub nodes: Vec<TimelineNode>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SpellcheckDictionaryWord {
+    pub word: String,
+    #[serde(default)]
+    pub case_sensitive: bool,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum SpellcheckDictionaryWordInput {
+    Legacy(String),
+    Entry(SpellcheckDictionaryWord),
+}
+
+fn deserialize_spellcheck_dictionary_words<'de, D>(
+    deserializer: D,
+) -> Result<Vec<SpellcheckDictionaryWord>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Vec::<SpellcheckDictionaryWordInput>::deserialize(deserializer).map(|entries| {
+        entries
+            .into_iter()
+            .map(|entry| match entry {
+                SpellcheckDictionaryWordInput::Legacy(word) => SpellcheckDictionaryWord {
+                    word,
+                    case_sensitive: false,
+                },
+                SpellcheckDictionaryWordInput::Entry(entry) => entry,
+            })
+            .collect()
+    })
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SpellcheckDictionary {
+    #[serde(default, deserialize_with = "deserialize_spellcheck_dictionary_words")]
+    pub ignored: Vec<SpellcheckDictionaryWord>,
+    #[serde(default, deserialize_with = "deserialize_spellcheck_dictionary_words")]
+    pub added: Vec<SpellcheckDictionaryWord>,
 }
 
 // ── Request types ─────────────────────────────────────────────────────────────
@@ -280,6 +322,20 @@ pub struct SaveTimelineRequest {
     pub timeline: Timeline,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct GetSpellcheckDictionaryRequest {
+    pub project_path: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateSpellcheckDictionaryRequest {
+    pub project_path: String,
+    pub action: String, // "ignore", "add", "remove"
+    pub word: String,
+    #[serde(default)]
+    pub case_sensitive: bool,
+}
+
 // ── Path helpers ──────────────────────────────────────────────────────────────
 
 fn books_dir(project: &Path) -> PathBuf {
@@ -308,6 +364,10 @@ fn scene_file(project: &Path, book_id: &str, chapter_id: &str, scene_id: &str) -
 
 fn timeline_file(project: &Path) -> PathBuf {
     project.join("timeline.json")
+}
+
+fn spellcheck_dictionary_file(project: &Path) -> PathBuf {
+    project.join(".spellcheck-dictionary.json")
 }
 
 fn slugify(input: &str) -> String {
@@ -921,4 +981,63 @@ pub fn rename_scene(req: RenameSceneRequest) -> Result<ChapterDetail, String> {
         description,
         tags: Some(tags),
     })
+}
+
+pub fn get_spellcheck_dictionary(req: GetSpellcheckDictionaryRequest) -> Result<SpellcheckDictionary, String> {
+    let root = PathBuf::from(&req.project_path);
+    let dict_file = spellcheck_dictionary_file(&root);
+
+    if !dict_file.exists() {
+        return Ok(SpellcheckDictionary::default());
+    }
+
+    read_json(&dict_file)
+}
+
+pub fn update_spellcheck_dictionary(req: UpdateSpellcheckDictionaryRequest) -> Result<SpellcheckDictionary, String> {
+    let root = PathBuf::from(&req.project_path);
+    let dict_file = spellcheck_dictionary_file(&root);
+
+    let mut dict: SpellcheckDictionary = if dict_file.exists() {
+        read_json(&dict_file)?
+    } else {
+        SpellcheckDictionary::default()
+    };
+
+    match req.action.as_str() {
+        "ignore" => {
+            if let Some(entry) = dict.ignored.iter_mut().find(|entry| entry.word == req.word) {
+                entry.case_sensitive = req.case_sensitive;
+            } else {
+                dict.ignored.push(SpellcheckDictionaryWord {
+                    word: req.word.clone(),
+                    case_sensitive: req.case_sensitive,
+                });
+                dict.ignored.sort_by(|a, b| a.word.cmp(&b.word));
+            }
+            dict.added.retain(|entry| entry.word != req.word);
+        }
+        "add" => {
+            if let Some(entry) = dict.added.iter_mut().find(|entry| entry.word == req.word) {
+                entry.case_sensitive = req.case_sensitive;
+            } else {
+                dict.added.push(SpellcheckDictionaryWord {
+                    word: req.word.clone(),
+                    case_sensitive: req.case_sensitive,
+                });
+                dict.added.sort_by(|a, b| a.word.cmp(&b.word));
+            }
+            dict.ignored.retain(|entry| entry.word != req.word);
+        }
+        "remove_ignore" => {
+            dict.ignored.retain(|entry| entry.word != req.word);
+        }
+        "remove_add" => {
+            dict.added.retain(|entry| entry.word != req.word);
+        }
+        _ => return Err(format!("Unknown action: {}", req.action)),
+    }
+
+    write_json(&dict_file, &dict)?;
+    Ok(dict)
 }

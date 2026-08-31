@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useSettings } from "../settings/SettingsContext";
-import type { ActiveScene } from "../types";
+import type { ActiveScene, ProjectDictionary } from "../types";
 import { MIN_PAGE_WIDTH } from "../settings/types";
 import {
   activeSentenceIndex,
@@ -11,12 +11,15 @@ import { measureSentenceCenter } from "../utils/caretPosition";
 import {
   findMisspelledSpans,
   loadSpeller,
+  loadProjectDictionary,
+  clearDictionaryCache,
   SPELLCHECK_LANGUAGES,
   type WordSpan,
 } from "../utils/spellcheck";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isAppFullscreen, setAppFullscreen } from "../utils/windowFullscreen";
+import { SpellcheckContextMenu } from "./SpellcheckContextMenu";
 import * as api from "../api";
 
 const EDITOR_PADDING = "1.5rem";
@@ -32,6 +35,7 @@ interface SceneEditorProps {
   activeScene: ActiveScene;
   sceneTitle: string;
   sceneDescription: string;
+    dictionaryRefreshKey: number;
   onMetaChange: () => void;
   onClose: () => void;
 }
@@ -41,6 +45,7 @@ export function SceneEditor({
   activeScene,
   sceneTitle,
   sceneDescription,
+    dictionaryRefreshKey,
   onMetaChange,
   onClose,
 }: SceneEditorProps) {
@@ -56,6 +61,16 @@ export function SceneEditor({
   );
   const [focusMode, setFocusMode] = useState(false);
   const [misspelledSpans, setMisspelledSpans] = useState<WordSpan[]>([]);
+  const [projectDictionary, setProjectDictionary] = useState<ProjectDictionary>({
+    ignored: [],
+    added: [],
+  });
+  const [contextMenu, setContextMenu] = useState<{
+    word: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const spellerRef = useRef<any>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const metaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -88,9 +103,14 @@ export function SceneEditor({
 
     let cancelled = false;
     const timer = setTimeout(() => {
-      loadSpeller(spellCheckLanguage).then((speller) => {
+      Promise.all([
+        loadSpeller(spellCheckLanguage),
+        loadProjectDictionary(projectPath),
+      ]).then(([speller, dictionary]) => {
         if (cancelled) return;
-        setMisspelledSpans(findMisspelledSpans(speller, content));
+        spellerRef.current = speller;
+        setProjectDictionary(dictionary);
+        setMisspelledSpans(findMisspelledSpans(speller, content, dictionary));
       });
     }, 300);
 
@@ -98,7 +118,13 @@ export function SceneEditor({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, spellCheckEnabled, spellCheckLanguage]);
+  }, [
+    content,
+    spellCheckEnabled,
+    spellCheckLanguage,
+    projectPath,
+    dictionaryRefreshKey,
+  ]);
 
   useEffect(() => {
     setTitle(sceneTitle);
@@ -356,6 +382,100 @@ export function SceneEditor({
     metaTimer.current = setTimeout(() => saveMeta(title, d), 500);
   };
 
+  const handleTextareaContextMenu = useCallback(
+    (e: React.MouseEvent<HTMLTextAreaElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const textarea = e.currentTarget;
+      const pos = textarea.selectionStart;
+
+      // Find the word at the cursor position
+      let start = pos;
+      let end = pos;
+
+      // Find word boundaries (space, punctuation, etc.)
+      while (start > 0 && /[\p{L}\p{M}'\u2019-]/u.test(content[start - 1])) {
+        start--;
+      }
+      while (end < content.length && /[\p{L}\p{M}'\u2019-]/u.test(content[end])) {
+        end++;
+      }
+
+      if (start === end) return; // No word at cursor
+
+      const word = content.slice(start, end);
+
+      // Check if this position is in a misspelled span
+      const isMisspelled = misspelledSpans.some(
+        (span) => span.start <= start && end <= span.end,
+      );
+
+      if (!isMisspelled) return; // Word not misspelled
+
+      // Get mouse position for context menu
+      const x = e.clientX;
+      const y = e.clientY;
+
+      setContextMenu({
+        word,
+        x,
+        y,
+      });
+    },
+    [content, misspelledSpans],
+  );
+
+  const handleSpellcheckReplace = useCallback(
+    (oldWord: string, newWord: string) => {
+      // Find all spans for this word and replace the first occurrence near the context menu
+      const spans = misspelledSpans.filter(
+        (span) => content.slice(span.start, span.end).toLowerCase() === oldWord.toLowerCase(),
+      );
+      if (spans.length > 0) {
+        const span = spans[0];
+        const newContent =
+          content.slice(0, span.start) +
+          newWord +
+          content.slice(span.end);
+        handleContentChange(newContent);
+      }
+    },
+    [content, misspelledSpans],
+  );
+
+  const handleSpellcheckIgnore = useCallback(
+    (word: string) => {
+      api
+        .updateSpellcheckDictionary(projectPath, "ignore", word)
+        .then((dict) => {
+          setProjectDictionary(dict);
+          clearDictionaryCache(projectPath);
+          // Recalculate misspelled spans with updated dictionary
+          if (spellerRef.current) {
+            setMisspelledSpans(findMisspelledSpans(spellerRef.current, content, dict));
+          }
+        });
+    },
+    [projectPath, content],
+  );
+
+  const handleSpellcheckAdd = useCallback(
+    (word: string) => {
+      api
+        .updateSpellcheckDictionary(projectPath, "add", word)
+        .then((dict) => {
+          setProjectDictionary(dict);
+          clearDictionaryCache(projectPath);
+          // Recalculate misspelled spans with updated dictionary
+          if (spellerRef.current) {
+            setMisspelledSpans(findMisspelledSpans(spellerRef.current, content, dict));
+          }
+        });
+    },
+    [projectPath, content],
+  );
+
   const wordCount = countWords(content);
 
   const bottomBar = (
@@ -452,6 +572,7 @@ export function SceneEditor({
                     onKeyUp={updateCaret}
                     onClick={updateCaret}
                     onScroll={syncScroll}
+                    onContextMenu={handleTextareaContextMenu}
                     placeholder="Write your scene here…"
                     spellCheck={settings.spellCheckEnabled}
                     autoFocus
@@ -473,9 +594,13 @@ export function SceneEditor({
                             if (span.start > cursor) {
                               nodes.push(content.slice(cursor, span.start));
                             }
+                            const word = content.slice(span.start, span.end);
                             nodes.push(
-                              <span key={index} className="spellcheck-error">
-                                {content.slice(span.start, span.end)}
+                              <span
+                                key={index}
+                                className="spellcheck-error"
+                              >
+                                {word}
                               </span>,
                             );
                             cursor = span.end;
@@ -499,6 +624,19 @@ export function SceneEditor({
             </div>
           )}
         </>
+      )}
+      {contextMenu && spellerRef.current && (
+        <SpellcheckContextMenu
+          word={contextMenu.word}
+          x={contextMenu.x}
+          y={contextMenu.y}
+          speller={spellerRef.current}
+          onReplace={handleSpellcheckReplace}
+          onIgnore={handleSpellcheckIgnore}
+          onAdd={handleSpellcheckAdd}
+          onClose={() => setContextMenu(null)}
+          projectDictionary={projectDictionary}
+        />
       )}
     </div>
   );

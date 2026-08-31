@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2 - 2026-08-31
+
+### Added
+
+- Per-project spellcheck dictionaries for managing added and ignored words, including case-sensitive entries.
+
 ## 0.6.1 - 2026-08-31
 
 ### Changed

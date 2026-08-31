@@ -11,12 +11,14 @@ use project::{
     create_book, create_chapter, create_project, create_scene, delete_scene, export_book,
     get_chapter, get_project, get_scene_content, move_chapter, move_scene, open_project,
     rename_book, rename_chapter, rename_scene, reorder_chapters, reorder_scenes,
-    save_timeline, get_timeline, update_scene_content, update_scene_meta, CreateBookRequest, CreateChapterRequest,
+    save_timeline, get_timeline, update_scene_content, update_scene_meta, get_spellcheck_dictionary,
+    update_spellcheck_dictionary, CreateBookRequest, CreateChapterRequest,
     CreateProjectRequest, CreateSceneRequest, DeleteSceneRequest, ExportBookRequest,
     GetChapterRequest, GetSceneContentRequest, MoveChapterRequest, MoveChapterResult,
     MoveSceneRequest, Project, ChapterDetail, RenameBookRequest, RenameChapterRequest,
     RenameSceneRequest, ReorderChaptersRequest, ReorderScenesRequest, UpdateSceneContentRequest,
-    UpdateSceneMetaRequest, SaveTimelineRequest, TimelineRequest,
+    UpdateSceneMetaRequest, SaveTimelineRequest, TimelineRequest, GetSpellcheckDictionaryRequest,
+    UpdateSpellcheckDictionaryRequest, SpellcheckDictionary,
 };
 use tags::{
     create_tag, delete_tag, list_tags, update_scene_tags, update_tag, CreateTagRequest,
@@ -59,6 +61,8 @@ pub fn run() {
             update_tag_cmd,
             delete_tag_cmd,
             update_scene_tags_cmd,
+            get_spellcheck_dictionary_cmd,
+            update_spellcheck_dictionary_cmd,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -217,4 +221,14 @@ fn delete_tag_cmd(req: DeleteTagRequest) -> Result<Vec<TagDefinition>, String> {
 #[tauri::command]
 fn update_scene_tags_cmd(req: UpdateSceneTagsRequest) -> Result<ChapterDetail, String> {
     update_scene_tags(req)
+}
+
+#[tauri::command]
+fn get_spellcheck_dictionary_cmd(req: GetSpellcheckDictionaryRequest) -> Result<SpellcheckDictionary, String> {
+    get_spellcheck_dictionary(req)
+}
+
+#[tauri::command]
+fn update_spellcheck_dictionary_cmd(req: UpdateSpellcheckDictionaryRequest) -> Result<SpellcheckDictionary, String> {
+    update_spellcheck_dictionary(req)
 }

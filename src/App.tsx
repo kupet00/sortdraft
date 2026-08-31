@@ -35,6 +35,7 @@ import { NoteEditor } from "./components/NoteEditor";
 import { SceneEditor } from "./components/SceneEditor";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { TimelineCanvas } from "./components/TimelineCanvas";
+import { DictionaryEditor } from "./components/DictionaryEditor";
 import "./App.css";
 
 function errorMessage(error: unknown): string {
@@ -105,6 +106,8 @@ function App() {
   const [activeNote, setActiveNote] = useState<NoteSummary | null>(null);
   const [isTimelineActive, setIsTimelineActive] = useState(false);
   const [notesRefreshKey, setNotesRefreshKey] = useState(0);
+  const [isDictionaryActive, setIsDictionaryActive] = useState(false);
+  const [dictionaryRefreshKey, setDictionaryRefreshKey] = useState(0);
   const [corkboardGridCols, setCorkboardGridCols] = useState(4);
   const handleGridColsChange = useCallback((cols: number) => {
     setCorkboardGridCols(cols);
@@ -153,6 +156,7 @@ function App() {
       setActiveScene(null);
       setActiveNote(null);
       setIsTimelineActive(false);
+      setIsDictionaryActive(false);
     },
     [project],
   );
@@ -162,6 +166,7 @@ function App() {
     if (note) {
       setActiveChapter(null);
       setChapterDetail(null);
+        setIsDictionaryActive(false);
       setActiveScene(null);
       setIsTimelineActive(false);
     }
@@ -265,12 +270,21 @@ function App() {
 
   const selectTimeline = () => {
     setIsTimelineActive(true);
+      setIsDictionaryActive(false);
     setActiveChapter(null);
     setChapterDetail(null);
     setActiveScene(null);
     setActiveNote(null);
   };
 
+  const selectDictionary = () => {
+    setIsDictionaryActive(true);
+    setActiveChapter(null);
+    setChapterDetail(null);
+    setActiveScene(null);
+    setActiveNote(null);
+    setIsTimelineActive(false);
+  };
   const openTimelineScene = async (bookId: string, chapterId: string, sceneId: string) => {
     if (!project) return;
     const detail = await api.getChapter(project.path, bookId, chapterId);
@@ -496,6 +510,8 @@ function App() {
             onSelectTimeline={selectTimeline}
             onSelectNote={selectNote}
             requestPrompt={requestPrompt}
+                      isDictionaryActive={isDictionaryActive}
+                      onSelectDictionary={selectDictionary}
             onOpenOptions={() => setShowOptions(true)}
             onProjectUpdated={(p) => {
               setProject(p);
@@ -526,6 +542,13 @@ function App() {
               />
             )}
 
+            {isDictionaryActive && project && (
+              <DictionaryEditor
+                projectPath={project.path}
+                onClose={() => setIsDictionaryActive(false)}
+                              onDictionaryUpdated={() => setDictionaryRefreshKey((key) => key + 1)}
+              />
+            )}
             {activeChapter && chapterDetail && !activeScene && !activeNote && (
               <Corkboard
                 projectPath={project.path}
@@ -545,6 +568,7 @@ function App() {
                 activeScene={activeScene}
                 sceneTitle={activeSceneMeta.title}
                 sceneDescription={activeSceneMeta.description}
+                                dictionaryRefreshKey={dictionaryRefreshKey}
                 onMetaChange={async () => {
                   if (activeChapter) {
                     const detail = await api.getChapter(
