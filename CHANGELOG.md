@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 - 2026-08-31
+
+### Changed
+
+- README now documents the full feature set, including the timeline canvas, notes panel, tags, spellcheck languages, and appearance settings.
+
 ## 0.5.1 - 2026-08-31
 
 ### Added

@@ -69,12 +69,56 @@ Tagged releases are also pushed to [itch.io](https://itch.io/) with [butler](htt
 
 ## Features
 
+### Organization
+
 - Multiple books per project, each in its own folder
 - Chapters with corkboard view — index cards for scenes on a grid
 - Drag cards to reorder scenes within a chapter
 - Drag cards onto a chapter in the sidebar to move scenes between chapters (even across books)
-- Click a card to write/edit the scene
+- Drag chapters between books in the sidebar
+- Recent projects shown on the welcome screen for quick reopening
+
+### Writing
+
+- Click a card to write/edit the scene, with autosave as you type
+- Word count for the current scene
+- Adjustable editor page width and font size
+- Typewriter mode — keeps the active sentence centered and dims the rest
+- Focus mode — distraction-free, fullscreen editing (Escape to exit)
+
+### Timeline
+
+- A separate visual timeline canvas per book for plotting story events
+- Add text notes, scene links, or markers as nodes on horizontal/vertical timeline lines
+- Drag nodes to reposition them, with snapping for precise alignment
+- Pan and zoom the canvas; jump straight to a linked scene from a node
+
+### Notes
+
+- Project-wide notes panel, separate from scenes, for research and planning
+- Create, edit, and delete notes with the same autosave as scenes
+
+### Tags
+
 - Right-click cards to assign coloured tags (not included in export)
+- Manage all project tags (name and colour) from a dedicated Tags dialog
+- Tag pills shown on scene cards for at-a-glance status
+
+### Spellcheck
+
+- Built-in spellcheck with underlines for misspelled words, toggled from the bottom bar
+- 15 languages included: Danish, Dutch, English (US), English (UK), French, German, Icelandic, Irish, Italian, Norwegian, Polish, Portuguese, Spanish, Swedish, and Welsh
+- Switch languages per session from a dropdown
+
+### Settings
+
+- Light and dark themes, or fully customise every UI colour
+- Choose from a curated list of writing fonts for the editor, with a live preview
+- Independently adjust UI and editor font sizes
+- Preferences persist between sessions
+
+### Export
+
 - Export a book to a single `.txt` file in scene order
 
 ## License
