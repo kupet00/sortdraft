@@ -1,5 +1,5 @@
 [package]
-name = "writer"
+name = "sortdraft"
 version = "0.6.2"
 description = "A simple cross-platform novel writing app"
 authors = ["you"]
@@ -7,7 +7,7 @@ edition = "2021"
 license = "GPL-3.0-only"
 
 [lib]
-name = "writer_lib"
+name = "sortdraft_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
